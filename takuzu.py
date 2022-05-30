@@ -105,6 +105,10 @@ class Takuzu(Problem):
 
 
 if __name__ == "__main__":
+    with open(sys.argv[1], 'r') as f:
+        contents = f.read()
+        print (contents)
+    
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
