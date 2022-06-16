@@ -38,22 +38,14 @@ class TakuzuState:
 
 
 class Board:
-    def __init__(self, content) -> None:
+    def __init__(self, n, board) -> None:
         """Representação interna de um tabuleiro de Takuzu."""
-
-        content = content.split('\n')
-        n = int(content[0])
-        board = content[1:(n + 1)]
-        for i in range(n):
-            board[i] = board[i].split('\t')
-            board[i] = [int(x) for x in board[i]]
-
         self.s = n
         self.l = board
 
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        return self.l[row][col]
+        return self.l[row - 1][col - 1]
 
     def adjacent_vertical_numbers(self, row: int, col: int):
         """Devolve os valores imediatamente abaixo e acima,
@@ -89,7 +81,16 @@ class Board:
             > stdin.readline()
         """
         from sys import stdin
-        return Board(stdin.read())
+        input = stdin.read()
+        input = input.split('\n')
+        n = int(input[0])
+        input = input[1:(n + 1)]
+
+        for i in range(n):
+            input[i] = input[i].split('\t')
+            input[i] = [int(x) for x in input[i]]
+
+        return Board(n, input)
 
     # Outros metodos da classe
     def lyt(self):
@@ -98,8 +99,25 @@ class Board:
     def size(self) -> int:
         return self.s
 
-    def setPiece(self, row, col, val):
+    def set_number(self, row, col, val):
         self.l[row - 1][col - 1] = val
+
+    def get_col(self, n):
+        col = []
+        for row in self.l:
+            col.append(row(n - 1))
+        return col
+
+    def get_row(self, n):
+        return self.l[n - 1]
+
+    def copy(self):
+        board = []
+
+        for row in self.l:
+            board.append(row[:])
+
+        return Board(self.s, board)
 
     def toString (self):
         s = ''
@@ -109,12 +127,13 @@ class Board:
             s += '\n'
         return s
     
+    def __str__(self):
+        return self.toString()
 
 class Takuzu(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
-        # TODO
-        pass
+        self = board
 
     def actions(self, state: TakuzuState):
         """Retorna uma lista de ações que podem ser executadas a
@@ -127,8 +146,9 @@ class Takuzu(Problem):
         'state' passado como argumento. A ação a executar deve ser uma
         das presentes na lista obtida pela execução de
         self.actions(state)."""
-        # TODO
-        pass
+        board = state.bd().copy()
+        board.set_number(action[0], action[1], action[2])
+        return TakuzuState(board)
 
     def goal_test(self, state: TakuzuState):
         """Retorna True se e só se o estado passado como argumento é
@@ -147,12 +167,21 @@ class Takuzu(Problem):
 
 if __name__ == "__main__":
 
-    b = Board.parse_instance_from_stdin()
-    print(b.lyt())
-    print(b.adjacent_vertical_numbers(1,4))
-    print(b.adjacent_horizontal_numbers(1,4))
-
+    board = Board.parse_instance_from_stdin()
+    print("Initial:\n", board, sep="")
+    # Criar uma instância de Takuzu:
+    problem = Takuzu(board)
+    # Criar um estado com a configuração inicial:
+    initial_state = TakuzuState(board)
+    # Mostrar valor na posição (2, 2):
+    print(initial_state.board.get_number(2, 2))
+    # Realizar acção de inserir o número 1 na posição linha 2 e coluna 2
+    result_state = problem.result(initial_state, (2, 2, 1))
+    # Mostrar valor na posição (2, 2):
+    print(result_state.board)
+    print(result_state.board.get_number(2, 2))
     
+
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
