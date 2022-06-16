@@ -6,7 +6,9 @@
 # 00000 Nome1
 # 00000 Nome2
 
+from ctypes import sizeof
 import sys
+from types import NoneType
 from search import (
     Problem,
     Node,
@@ -29,28 +31,51 @@ class TakuzuState:
     def __lt__(self, other):
         return self.id < other.id
 
-    # TODO: outros metodos da classe
+    # Outros metodos da classe
+
+    def bd(self):
+        return self.board
 
 
 class Board:
-    """Representação interna de um tabuleiro de Takuzu."""
+    def __init__(self, content) -> None:
+        """Representação interna de um tabuleiro de Takuzu."""
+
+        content = content.split('\n')
+        n = int(content[0])
+        board = content[1:(n + 1)]
+        for i in range(n):
+            board[i] = board[i].split('\t')
+            board[i] = [int(x) for x in board[i]]
+
+        self.s = n
+        self.l = board
 
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        # TODO
-        pass
+        return self.l[row][col]
 
-    def adjacent_vertical_numbers(self, row: int, col: int) -> (int, int):
+    def adjacent_vertical_numbers(self, row: int, col: int):
         """Devolve os valores imediatamente abaixo e acima,
         respectivamente."""
-        # TODO
-        pass
+        up = None
+        down = None
+        if(row - 1 > 0):
+            up = self.l[row - 2][col - 1]
+        if(row < self.s):
+            down = self.l[row][col - 1]
+        return (up, down)
 
-    def adjacent_horizontal_numbers(self, row: int, col: int) -> (int, int):
+    def adjacent_horizontal_numbers(self, row: int, col: int):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
-        # TODO
-        pass
+        left = None
+        right = None
+        if(col - 1 > 0):
+            left = self.l[row - 1][col - 2]
+        if(col < self.s):
+            right = self.l[row - 1][col]
+        return (left, right)
 
     @staticmethod
     def parse_instance_from_stdin():
@@ -63,11 +88,27 @@ class Board:
             > from sys import stdin
             > stdin.readline()
         """
-        # TODO
-        pass
+        from sys import stdin
+        return Board(stdin.read())
 
-    # TODO: outros metodos da classe
+    # Outros metodos da classe
+    def lyt(self):
+        return self.l
 
+    def size(self) -> int:
+        return self.s
+
+    def setPiece(self, row, col, val):
+        self.l[row - 1][col - 1] = val
+
+    def toString (self):
+        s = ''
+        for row in self.l:
+            for val in row:
+                s += str(val) + '\t'
+            s += '\n'
+        return s
+    
 
 class Takuzu(Problem):
     def __init__(self, board: Board):
@@ -105,13 +146,15 @@ class Takuzu(Problem):
 
 
 if __name__ == "__main__":
-    with open(sys.argv[1], 'r') as f:
-        contents = f.read()
-        print (contents)
+
+    b = Board.parse_instance_from_stdin()
+    print(b.lyt())
+    print(b.adjacent_vertical_numbers(1,4))
+    print(b.adjacent_horizontal_numbers(1,4))
+
     
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
     # Retirar a solução a partir do nó resultante,
     # Imprimir para o standard output no formato indicado.
-    pass
