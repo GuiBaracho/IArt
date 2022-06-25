@@ -6,9 +6,7 @@
 # 00000 Nome1
 # 00000 Nome2
 
-from ctypes import sizeof
 import sys
-from types import NoneType
 from search import (
     Problem,
     Node,
@@ -34,11 +32,10 @@ class TakuzuState:
     # Outros metodos da classe
 
 class Board:
-    def __init__(self, n, board, free) -> None:
+    def __init__(self, n, board) -> None:
         """Representação interna de um tabuleiro de Takuzu."""
         self.s = n
         self.l = board
-        self.f = free
 
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
@@ -80,45 +77,24 @@ class Board:
         from sys import stdin
         input = stdin.read()
         input = input.split('\n')
-        free = 0
         n = int(input[0])
         input = input[1:(n + 1)]
         
         for i in range(n):
             input[i] = input[i].split('\t')
             input[i] = [int(x) for x in input[i]]
-            for y in input[i]:
-                if y == 2:
-                    free += 1
 
-        return Board(n, input, free)
+        return Board(n, input)
 
     # Outros metodos da classe
     def set_number(self, row, col, val):
         self.l[row][col] = val
-        self.f -= 1
 
-    def transpose(self):
-        n = self.s
-        board = []
-        for i in range(n):
-            col = []
-            for row in self.l:
-                col.append(row[i])
-            board.append(col)
-        return board
-
-    def chk_values(self):
-        n = self.s
-        b = self.l
-        t = self.transpose()
-        for i in range(n):
-            if (chk_line(n, b[i]) == False) or (chk_line(n, t[i]) == False):
-                return False
-            for j in range(n-i): 
-                if ((b[j+i] == b[i]) or (t[j+i] == t[i])) and (j+i) != i:
-                    return False
-        return True
+    def get_column(self, n):
+        col = []
+        for row in self.l:
+            col.append(row[n])
+        return col
 
     def copy(self):
         board = []
@@ -126,7 +102,7 @@ class Board:
         for row in self.l:
             board.append(row[:])
 
-        return Board(self.s, board, self.f)
+        return Board(self.s, board)
 
     def toString (self):
         s = ''
@@ -140,7 +116,15 @@ class Board:
         return s
     
     def __str__(self):
-        return self.toString()
+        s = ''
+        for row in self.l:
+            for i in range(self.s):
+                s += str(row[i])
+                if i == self.s-1:
+                    s += '\n'
+                else:
+                    s += '\t'
+        return s
 
 class Takuzu(Problem):
     def __init__(self, board: Board):
@@ -156,8 +140,12 @@ class Takuzu(Problem):
         for row in range(n):
             for col in range(n):
                 if b.get_number(row, col) == 2:
-                    actions.append((row, col, 0))
-                    actions.append((row, col, 1))
+                    if chk_pos(b, row, col, 0):
+                        actions.append((row, col, 0))
+                    if chk_pos(b, row, col, 1):
+                        actions.append((row, col, 1))
+                    return actions
+
         return actions
 
     def result(self, state: TakuzuState, action):
@@ -173,7 +161,32 @@ class Takuzu(Problem):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas com uma sequência de números adjacentes."""
-        return ((state.board.f == 0) and (state.board.chk_values()))
+        n = state.board.s
+        b = state.board.l
+        t = [list(i) for i in zip(*b)]
+
+        for line in b:
+            if line.count(2) != 0:
+                return False
+        
+        for j in range(n):
+            if chk_line(b[j]):
+                return False 
+            if chk_line(t[j]):
+                return False
+            if abs(b[j].count(0) - b[j].count(1)) > 1:
+                return False
+            if (t[j].count(0) - t[j].count(1)) > 1:
+                return False
+
+        for row in b:
+            if b.count(row) > 1:
+                return False
+        for col in t:
+            if t.count(col) > 1:
+                return False
+        
+        return True
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -182,33 +195,50 @@ class Takuzu(Problem):
 
     # TODO: outros metodos da classe
 
-
-def chk_line(n, line):
-    max = abs(-n//2)
-    count_0, count_1, seq_0, seq_1 = 0, 0, 0, 0
+def chk_line(line):
+    c0, c1 = 0, 0
     for x in line:
         if x == 0:
-            count_0 += 1
-            seq_0 += 1
-            seq_1 = 0
+            c0 += 1
+            c1 = 0
         elif x == 1:
-            count_1 += 1
-            seq_0 = 0
-            seq_1 += 1
-        if (count_0 > max) or (count_1 > max) or (seq_1 > 2) or (seq_0 > 2):
-                return False
+            c0 = 0
+            c1 += 1
+        elif x == 2:
+            c0 = 0
+            c1 = 0
+        if c0 > 2 or c1 > 2:
+            return True
+    return False
+
+def chk_pos(board, row, col, val):
+    n = board.s
+    max = abs(-n//2)
+
+    r = board.l[row][:]
+    r[col] = val
+    c = board.get_column(col)
+    c[row] = val
+
+    if chk_line(r) or (r.count(val) > max):
+        return False
+    if chk_line(c) or (c.count(val) > max):
+        return False
+    
     return True
+
 
 
 if __name__ == "__main__":
 
     board = Board.parse_instance_from_stdin()
-    # Criar uma instância de Takuzu:
     problem = Takuzu(board)
-    # Obter o nó solução usando a procura em profundidade:
-    goal_node = depth_first_tree_search(problem)
-    print(goal_node.state.board, end="")
 
+    # search algorithm
+    goal_node = depth_first_tree_search(problem)
+
+    print(goal_node.state.board, sep="", end="")
+    
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
