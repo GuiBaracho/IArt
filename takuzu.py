@@ -2,9 +2,9 @@
 # Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
 # Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
 
-# Grupo 00:
-# 00000 Nome1
-# 00000 Nome2
+# Grupo 112:
+# ist199231 Guilherme Baracho
+# ist199193 Constança Cunha
 
 import sys
 from search import (
@@ -39,28 +39,22 @@ class Board:
 
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
+        if (row > self.s - 1) or (row < 0) or (col > self.s - 1) or (col < 0):
+            return None
         return self.l[row][col]
 
     def adjacent_vertical_numbers(self, row: int, col: int):
         """Devolve os valores imediatamente abaixo e acima,
         respectivamente."""
-        up = None
-        down = None
-        if(row > 0):
-            up = self.l[row - 1][col]
-        if(row < self.s - 1):
-            down = self.l[row + 1][col]
+        down = self.get_number(row + 1, col)
+        up = self.get_number(row - 1, col)
         return (down, up)
 
     def adjacent_horizontal_numbers(self, row: int, col: int):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
-        left = None
-        right = None
-        if(col > 0):
-            left = self.l[row][col - 1]
-        if(col < self.s - 1):
-            right = self.l[row][col + 1]
+        left = self.get_number(row, col - 1)
+        right = self.get_number(row, col + 1)
         return (left, right)
 
     @staticmethod
@@ -95,6 +89,35 @@ class Board:
         for row in self.l:
             col.append(row[n])
         return col
+
+    def chk_certain(self, row, col):
+
+        l1 = self.get_number(row, col - 1)
+        l2 = self.get_number(row, col - 2)
+        if (l1 == l2) and (l1 in [0,1]):
+            return (-1) * (l1 - 1)
+        
+        r1 = self.get_number(row, col + 1)
+        r2 = self.get_number(row, col + 2)
+        if (r1 == r2) and (r1 in [0,1]):
+            return (-1) * (r1 - 1)
+
+        if (l1 == r1) and (l1 in [0,1]):
+            return (-1) * (l1 - 1)
+
+        u1 = self.get_number(row - 1, col)
+        u2 = self.get_number(row - 2, col)
+        if (u1 == u2) and (u1 in [0,1]):
+            return (-1) * (u1 - 1)
+        
+        d1 = self.get_number(row + 1, col)
+        d2 = self.get_number(row + 2, col)
+        if (d1 == d2) and (d1 in [0,1]):
+            return (-1) * (d1 - 1)
+        
+        if (u1 == d1)  and (u1 in [0,1]):
+            return (-1) * (u1 - 1)
+        
 
     def copy(self):
         board = []
@@ -137,6 +160,17 @@ class Takuzu(Problem):
         b = state.board
         n = b.s
         actions = []
+
+        if state.id == 0:
+            for row in range(n):
+                for col in range(n):
+                    if b.get_number(row, col) == 2:
+                        val = b.chk_certain(row, col)
+                        if  val == 0:
+                            b.set_number(row, col, 0)
+                        elif val == 1:
+                            b.set_number(row, col, 1)
+
         for row in range(n):
             for col in range(n):
                 if b.get_number(row, col) == 2:
