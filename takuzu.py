@@ -15,6 +15,8 @@ from search import (
     depth_first_tree_search,
     greedy_search,
     recursive_best_first_search,
+    compare_searchers,
+    InstrumentedProblem,
 )
 
 
@@ -161,23 +163,23 @@ class Takuzu(Problem):
         n = b.s
         actions = []
 
-        if state.id == 0:
-            for row in range(n):
-                for col in range(n):
-                    if b.get_number(row, col) == 2:
-                        val = b.chk_certain(row, col)
-                        if  val == 0:
-                            b.set_number(row, col, 0)
-                        elif val == 1:
-                            b.set_number(row, col, 1)
+#        if state.id == 0:
+#            for row in range(n):
+#                for col in range(n):
+#                    if b.get_number(row, col) == 2:
+#                        val = b.chk_certain(row, col)
+#                        if  val == 0:
+#                            b.set_number(row, col, 0)
+#                        elif val == 1:
+#                            b.set_number(row, col, 1)
 
         for row in range(n):
             for col in range(n):
                 if b.get_number(row, col) == 2:
-                    if chk_pos(b, row, col, 0):
-                        actions.append((row, col, 0))
-                    if chk_pos(b, row, col, 1):
-                        actions.append((row, col, 1))
+                    #if chk_pos(b, row, col, 0):
+                    actions.append((row, col, 0))
+                    #if chk_pos(b, row, col, 1):
+                    actions.append((row, col, 1))
                     return actions
 
         return actions
@@ -224,8 +226,17 @@ class Takuzu(Problem):
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        # TODO
-        pass
+        b = node.state.board.l
+        t = [list(i) for i in zip(*b)]
+        h = 0
+
+        for line in b:
+            if line.count(2) > 0:
+                h += 1
+        for line in t:
+            if line.count(2) > 0:
+                h += 1
+        return h
 
     # TODO: outros metodos da classe
 
@@ -269,9 +280,17 @@ if __name__ == "__main__":
     problem = Takuzu(board)
 
     # search algorithm
-    goal_node = depth_first_tree_search(problem)
+    #goal_node = depth_first_tree_search(problem)
 
-    print(goal_node.state.board, sep="", end="")
+    #goal_node = breadth_first_tree_search(problem)
+
+    #goal_node = greedy_search(problem)
+
+    #goal_node = astar_search(problem)
+
+    #print(goal_node.state.board, sep="", end="")
+
+    compare_searchers([problem], header =["Algoritmo", "Dados"])
     
     # TODO:
     # Ler o ficheiro do standard input,
