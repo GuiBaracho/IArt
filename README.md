@@ -1,5 +1,4 @@
-# Artificial Intelligence Project - LEIC @ IST 2021/2022
-
-Project for the "Artificial Intelligence" class @ Instituto Superior Técnico, Lisbon 2021/2022
+# Artificial Intelligence Project
+Artificial Intelligence class group project - LEIC 2021/2022 @ IST
 
 Code by Guilherme Baracho
